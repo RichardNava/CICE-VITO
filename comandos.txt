@@ -1,0 +1,39 @@
+BASIC COMMANDS (linux)
+pwd --> working directory
+touch
+cd --> stands for Change Directory
+(program you want to use) (file that you want to open with that program) // code main.py
+cd .. --> One level up of your pwd
+(program to open the pwd) . // code .
+ls
+rm (remove file)
+rmdir (remove d if it's empty)
+rm /directory - r (rmdir if it's full)
+
+VENV
+python3 -m venv environment
+source environment/bin/activate
+pip install module_package
+
+GIT
+git init - Inicializar el git en la carpeta que desees
+git remote add origin (url) - Comando para unir local-remote
+git branch (name_of_branch) - Crear rama
+git checkout (name_of_branc) - Cambiar de rama
+git add file [file2] - Añadir archivo al repositorio
+git add -A - Agrega todos los archivos en la carpeta donde hayas ejecutado la consola de Git Bash
+git commit -m ("Your MSG") - Crear etiquetas commit
+git push origin (name_of_branch) - Para enviar los datos al remote
+
+Para merge:
+git checkout <a la rama a mergear>
+git merge <rama a mergear>
+git push <de la rama mergeada>
+
+Para clonar:
+git clone repository <url>
+
+Para revisar commits:
+
+git log
+git checkout <HASH del commit>

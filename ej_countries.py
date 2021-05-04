@@ -4,6 +4,8 @@
 import requests as req
 import json
 import csv
+import time
+import concurrent.futures
 
 #! Ejercicio 3: Hacer una request a la url que nos traiga todos los países del mundo
 #response = req.get('https://restcountries.eu/rest/v2/all').json()
@@ -31,22 +33,46 @@ def choose():
 menu_principal()
 user = choose()
 
+def req_countries(pais):
+    return req.get(f'https://restcountries.eu/rest/v2/name/{pais}').json()[0]
+
 while user != 'q':
     if user == '1':
         user = input('Introduzca país: ')
-        country = req.get(f'https://restcountries.eu/rest/v2/name/{user}').json()[0]
-        with open("historial.csv","a", newline='', encoding='utf8') as file:
-            writer = csv.writer(file, delimiter=',')
-            data = [country['name'],country['capital'],country['region'],country['population'],country['area'],country['languages'][0],country['flag']]
-            writer.writerow(data)
+        start = time.perf_counter()
+#! Ejercicio 5: Agregar un mensaje asíncrono que indique al usuario que se está procesando su respuesta
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            country = executor.submit(req_countries,user)
+            print('Su petición esta siendo procesada')
+            country = country.result()
+        finish = time.perf_counter()
+        print(finish-start)
+        try:
+            with open("historial.csv","r", newline='', encoding='utf8') as file:
+                with open("historial.csv","a", newline='', encoding='utf8') as file:
+                    writer = csv.writer(file, delimiter=',')
+                    data = [country['name'],country['capital'],country['region'],country['population'],country['area'],country['languages'][0],country['flag']]
+                    writer.writerow(data)
+        except FileNotFoundError:
+            with open("historial.csv","w", newline='', encoding='utf8') as file:
+                writer = csv.writer(file, delimiter=',')
+                data = ['PAIS','CAPITAL','CONTINENTE','POBLACION','SUPERFICIE','IDIOMA','BANDERA']
+                writer.writerow(data)
         print(f"{country['name']} con una población de {country['population']} habitantes.")
+        user = input('¿Desea descargar una imagen de la bandera?(Y/N)').lower()
+        if user == 'y':
+            url_img = country['flag']
+            response = req.get(url_img).content
+            name = country['name']
+            with open(f'img/{name}.svg', 'wb') as img:
+                img.write(response)
         menu_principal()
         user = choose()
     elif user == '2':
         user = input('Introduzca continente: ')
         response = req.get(f'https://restcountries.eu/rest/v2/region/{user}').json()
         #print(f"{country['name']} con una población de {country['population']} habitantes.")
-        with open ("D:/Programación/Cice/Master Python/Unidad_2/countries.json","a", encoding='utf8') as file:
+        with open (f"D:/Programación/Cice/Master Python/Unidad_2/{user}.json","w", encoding='utf8') as file:
                 json.dump(response, file, ensure_ascii=False)
         menu_principal()        
         user = choose()
