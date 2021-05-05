@@ -25,40 +25,66 @@ data = get_data()
 def menu_principal():
     print('1- Buscar país')
     print('2- Buscar continente')
+    print('3- Consultar población')
+    print('4- Historial')
     print('0- Salir')
 
 def choose():
     return input('Elija opción:')
 
-menu_principal()
-user = choose()
+def open_csv(file_csv):
+    with open(file_csv,"r", newline='', encoding='utf8') as file:
+        historial = csv.reader(file)
+        next(historial)
+        return list(historial)
 
 def req_countries(pais):
     return req.get(f'https://restcountries.eu/rest/v2/name/{pais}').json()[0]
 
+def req_continent(continent):
+    return req.get(f'https://restcountries.eu/rest/v2/region/{continent}').json()[0]
+
+def record_csv(country):
+        try:
+            with open("Unidad_2/historial.csv","r", newline='', encoding='utf8') as file:
+                with open("Unidad_2/historial.csv","a", newline='', encoding='utf8') as file:
+                    writer = csv.writer(file, delimiter=',')
+                    data = [country['name'],country['capital'],country['region'],country['population'],country['area'],country['languages'][0],country['flag']]
+                    writer.writerow(data)
+                    return 'Datos de país añadidos al historial.'
+        except FileNotFoundError:
+            with open("Unidad_2/historial.csv","w", newline='', encoding='utf8') as file:
+                writer = csv.writer(file, delimiter=',')
+                data = ['PAIS','CAPITAL','CONTINENTE','POBLACION','SUPERFICIE','IDIOMA','BANDERA']
+                writer.writerow(data)
+                return 'Historial creado.'
+
+def save_flags(country_list):
+    url_img = country[6]
+    response = req.get(url_img).content
+    name = country[0]
+    with open(f'Unidad_2/img/{name}.svg', 'wb') as img:
+        img.write(response)
+        print(f'Bandera {name} guardada.')
+
+menu_principal()
+user = choose()
+
 while user != 'q':
     if user == '1':
         user = input('Introduzca país: ')
-        start = time.perf_counter()
+        # start = time.perf_counter()
 #! Ejercicio 5: Agregar un mensaje asíncrono que indique al usuario que se está procesando su respuesta
         with concurrent.futures.ThreadPoolExecutor() as executor:
             country = executor.submit(req_countries,user)
             print('Su petición esta siendo procesada')
             country = country.result()
-        finish = time.perf_counter()
-        print(finish-start)
-        try:
-            with open("historial.csv","r", newline='', encoding='utf8') as file:
-                with open("historial.csv","a", newline='', encoding='utf8') as file:
-                    writer = csv.writer(file, delimiter=',')
-                    data = [country['name'],country['capital'],country['region'],country['population'],country['area'],country['languages'][0],country['flag']]
-                    writer.writerow(data)
-        except FileNotFoundError:
-            with open("historial.csv","w", newline='', encoding='utf8') as file:
-                writer = csv.writer(file, delimiter=',')
-                data = ['PAIS','CAPITAL','CONTINENTE','POBLACION','SUPERFICIE','IDIOMA','BANDERA']
-                writer.writerow(data)
+        # finish = time.perf_counter()
+        # print(finish-start)
+        print(record_csv(country))
         print(f"{country['name']} con una población de {country['population']} habitantes.")
+#! Ejercicio 8: Luego de buscar un país e imprimirlo por pantalla preguntar si desea guardar la imagen del país encontrado.
+#! Ejercicio 9: Descargar la imagen indicada con anterioridad en --> ./images (Nota: El formato de las imágenes de restcountries es SVG)
         user = input('¿Desea descargar una imagen de la bandera?(Y/N)').lower()
         if user == 'y':
             url_img = country['flag']
@@ -70,10 +96,45 @@ while user != 'q':
         user = choose()
     elif user == '2':
         user = input('Introduzca continente: ')
-        response = req.get(f'https://restcountries.eu/rest/v2/region/{user}').json()
-        #print(f"{country['name']} con una población de {country['population']} habitantes.")
+        response = req_continent(user)
         with open (f"D:/Programación/Cice/Master Python/Unidad_2/{user}.json","w", encoding='utf8') as file:
                 json.dump(response, file, ensure_ascii=False)
+        menu_principal()        
+        user = choose()
+
+#! Ejercicio 6: Agregar opción "population"
+#! Ejercicio 7: Al elegir la opción population se obtendrá la población total que el usuario haya indicado anteriormente, de no existir el archivo manejar el error
+    elif user == '3':
+        user = input('Introduzca país: ').capitalize()
+        reader = open_csv("Unidad_2/historial.csv")
+        print(reader)
+        population = sum(list(map(lambda country: int(country[3]) if country[0] == user else 0,reader)))
+        if population > 0:
+            print(f'{user} tiene {population} habitantes.')
+        elif population == 0:
+            print(f'El país {user} no se encuentra en la base de datos.', end='')
+            resp = input('¿Desea añadirlo?(Y/N)').lower()
+            if resp == 'y':
+                country = req_countries(user)
+                print(record_csv(country))
+        menu_principal()        
+        user = choose()
+#! Ejercicio 10: Agregar una root function historial de búsqueda
+#! Ejercicio 11: La función del ejercicio 10, entregará los nombres y las poblaciones de todos los países previamente buscados de la siguiente manera name:value**\n**poblacion: value
+#! Ejercicio 12: Luego de mostrar la lista de países del ejercicio 10 preguntar si quiere descargar las banderas de los mismos
+#! Ejercicio 13: Descargar todas las imágenes en un directorio aparte
+    elif user == '4':
+        historial = open_csv("Unidad_2/historial.csv")
+        countrys = list(map(lambda country: (country[0],int(country[3])),historial))
+        for country in countrys:
+            print(f'Pais: {country[0]}\nPoblación: {country[1]}\n')
+        user = input('Desea descargar las banderas de estos paises?(Y/N)').lower()
+        if user == 'y':
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                for country in historial:
+                    flag = executor.submit(save_flags,country)
+                    print('Su petición esta siendo procesada')
+                    flag = flag.result()
         menu_principal()        
         user = choose()
     elif user == '0':
@@ -81,4 +142,5 @@ while user != 'q':
         user = 'q'
     else:
         print('No se ha reconocido su repuesta')
+        menu_principal()        
         user = choose()
