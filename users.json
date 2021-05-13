@@ -2,15 +2,15 @@
     "data": [
         {
             "name": "Richard",
-            "password": "23ED7ty"
+            "password": "$2b$12$7lpAKMo9h1ARCM5WmCb33eHh5prW9n8S98IvYPeiM3XA7uOa/0z06"
         },
         {
-            "name": "Alvaro",
-            "password": "OlKi809"
+            "name": "Raquel",
+            "password": "$2b$12$Qjagbq883FhxbRHA1W/79O5uWHoo5iDsES.xP./w140zDiHm9dQB2"
         },
         {
-            "name": "Pablo",
-            "password": "42HGas("
+            "name": "Laura",
+            "password": "$2b$12$lvcZTSSvFBGAFW/pCLbbK.WN0hLvlomlDKcZqFCKcc/NH8.MVWhDi"
         }
     ]
 }
