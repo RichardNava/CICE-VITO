@@ -20,6 +20,7 @@ def menu2():
     print('\t------------------------------')
     print('\t 1- ¿Buscar DEA por código?')
     print('\t 2- ¿Buscar DEA por distancia?')
+    print('\t 3- ¿Buscar DEA por distancia 2.0?')
     print('\t------------------------------')
 
 def create_dea(dea):
@@ -37,6 +38,23 @@ def compare_distance(dea_list, pos_x, pos_y):
             maxi = result
             prox_dea = dea
     return maxi, prox_dea
+
+def dea_distance_order(dea_list,pos_x,pos_y):
+    dea_dict = {}
+    for dea in dea_list:
+        new_dea = create_dea(dea)
+        distance = new_dea.calculate_distance(pos_x,pos_y)
+        dea_dict[(dea['direccion_coordenada_x'], dea['direccion_coordenada_y'])] = distance
+    return dict(sorted(dea_dict.items(), key=lambda item: item[1]))
+
+def dea_links_maps(dea_dict, pos_x, pos_y, range=5):
+    count = 0
+    for dea in list(dea_dict.keys())[0:range]:
+        count += 1
+        latlong = utm.to_latlon(int(dea[0]),int(dea[1]),30,'T')
+        pos_me = utm.to_latlon(pos_x,pos_y,30,'T')
+        print(f'\tDESTINO EN MAPS {count} --> https://www.google.com/maps/search/?api=1&query={latlong[0]},{latlong[1]}')
+        print(f'\tRUTA EN MAPS {count} ---> https://www.google.com/maps/dir/{pos_me[0]},{pos_me[1]}/{latlong[0]},{latlong[1]}')
 
 def dea_by_code(data):
     resp = input('\tIntroduzca el código DEA: ')
@@ -57,7 +75,7 @@ def dea_by_distance(data):
     #userlatlong = utm.to_latlon(pos_x, pos_y, 30,'T')
     latlong = utm.to_latlon(int(dea_prox['direccion_coordenada_x']),int(dea_prox['direccion_coordenada_y']),30,'T')
     print(f'\tDESTINO EN MAPS --> https://www.google.com/maps/search/?api=1&query={latlong[0]},{latlong[1]}')
-    print(f'\tRUTA EN MAPS ---> https://www.google.com/maps/dir/{pos_me[0]},+{pos_me[1]}/{latlong[0]},{latlong[1]}')
+    print(f'\tRUTA EN MAPS ---> https://www.google.com/maps/dir/{pos_me[0]},{pos_me[1]}/{latlong[0]},{latlong[1]}')
     
 def dea_tostring(dea_list):
     for dea in dea_list:
@@ -104,4 +122,8 @@ def menu2_functions(data):
     if user == '1':
         dea_by_code(data)
     elif user == '2':
-        dea_by_distance(data)  
+        dea_by_distance(data) 
+    elif user == '3':
+        pos_x = int(input('\tIndique su coordenada X: '))
+        pos_y = int(input('\tIndique su coordenada Y: '))
+        dea_links_maps(dea_distance_order(data,pos_x,pos_y),pos_x,pos_y)  
